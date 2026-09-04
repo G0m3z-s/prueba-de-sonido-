@@ -116,30 +116,31 @@ export function useAudioProcessor() {
   const processAudio = async (blob: Blob, sampleRate: number) => {
     const processStart = Date.now();
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = async () => {
-        const base64data = reader.result as string;
-        
-        const response = await fetch('/api/analyze-audio', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ audioBase64: base64data, mimeType: blob.type })
-        });
-        
-        if (!response.ok) {
-          const errRes = await response.json();
-          throw new Error(errRes.error || 'Error procesando audio con la IA');
-        }
-        
-        const data: AIResponse = await response.json();
-        setAiResult(data);
-      };
+      const base64data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+      });
+
+      const response = await fetch('/api/analyze-audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audioBase64: base64data, mimeType: blob.type })
+      });
+      
+      if (!response.ok) {
+        const errRes = await response.json();
+        throw new Error(errRes.error || 'Error procesando audio con la IA');
+      }
+      
+      const data: AIResponse = await response.json();
+      setProcessingTime((Date.now() - processStart) / 1000);
+      setAiResult(data);
     } catch (err: any) {
       setError(err.message || 'Error de conexión con el servidor IA.');
     } finally {
       setIsProcessing(false);
-      setProcessingTime((Date.now() - processStart) / 1000);
     }
   };
 
