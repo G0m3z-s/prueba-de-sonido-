@@ -1,0 +1,10 @@
+{
+  "name": "Laboratorio Interactivo ASR",
+  "description": "Aplicación web didáctica para visualizar el proceso de Reconocimiento Automático del Habla (ASR) paso a paso.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
